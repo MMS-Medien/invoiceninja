@@ -180,6 +180,7 @@
  *       @OA\Property(property="delivery_note_design_id", type="string", example="", description="Company setting `delivery_note_design_id`."),
  *       @OA\Property(property="e_expense_forward_email", type="string", format="email", nullable=true, example="", description="Company setting `e_expense_forward_email`."),
  *       @OA\Property(property="e_invoice_forward_email", type="string", format="email", nullable=true, example="", description="Company setting `e_invoice_forward_email`."),
+ *       @OA\Property(property="e_invoice_seller_email", type="string", example="user", description="Company setting `e_invoice_seller_email`. Seller contact email used in e-documents: `user` or `company`."),
  *       @OA\Property(property="e_invoice_type", type="string", example="EN16931", description="Company setting `e_invoice_type`."),
  *       @OA\Property(property="e_quote_type", type="string", example="OrderX_Comfort", description="Company setting `e_quote_type`."),
  *       @OA\Property(property="email_alignment", type="string", example="center", description="Company setting `email_alignment`."),

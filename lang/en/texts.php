@@ -6554,6 +6554,10 @@ $lang = array(
     'decimal_hours' => 'Decimal Hours',
     'locked_task' => 'This task is locked and cannot be edited.',
     'map_signatories_description' => 'Select who you would like to send this document to, then continue.',
+    'e_invoice_seller_email' => 'E-Invoice Seller Email',
+    'e_invoice_seller_email_help' => 'The email address used as the seller contact in e-invoices and e-quotes',
+    'use_user_email' => 'Use User Email',
+    'use_company_email' => 'Use Company Email',
 
 );
 
