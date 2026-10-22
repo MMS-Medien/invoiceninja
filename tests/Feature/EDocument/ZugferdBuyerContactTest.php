@@ -17,6 +17,8 @@ use DOMXPath;
 use Tests\TestCase;
 use App\Models\Country;
 use App\Models\Product;
+use App\Models\ClientContact;
+use App\Models\InvoiceInvitation;
 use Tests\MockAccountData;
 use App\DataMapper\InvoiceItem;
 use App\DataMapper\Tax\TaxModel;
@@ -114,6 +116,61 @@ class ZugferdBuyerContactTest extends TestCase
         $this->assertXmlValid($xml, $this->zug_16931, 'buyer contact with PersonName');
     }
 
+    public function testSellerEmailDefaultsToUserEmail(): void
+    {
+        $this->setCompanyEmailSettings('company@example.com', null);
+
+        $xpath = $this->xpath($this->buildBuyerContactXml('Jane', 'Example'));
+
+        $this->assertSame($this->invoice->user->email, $this->singleValue($xpath, '//ram:SellerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+        $this->assertSame($this->invoice->user->email, $this->singleValue($xpath, '//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID'));
+    }
+
+    public function testSellerEmailUsesCompanyEmailWhenConfigured(): void
+    {
+        $this->setCompanyEmailSettings('company@example.com', 'company');
+
+        $xpath = $this->xpath($this->buildBuyerContactXml('Jane', 'Example'));
+
+        $this->assertSame('company@example.com', $this->singleValue($xpath, '//ram:SellerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+        $this->assertSame('company@example.com', $this->singleValue($xpath, '//ram:SellerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID'));
+    }
+
+    public function testSellerEmailFallsBackToUserEmailWithoutCompanyEmail(): void
+    {
+        $this->setCompanyEmailSettings('', 'company');
+
+        $xpath = $this->xpath($this->buildBuyerContactXml('Jane', 'Example'));
+
+        $this->assertSame($this->invoice->user->email, $this->singleValue($xpath, '//ram:SellerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+    }
+
+    public function testBuyerContactUsesSelectedContact(): void
+    {
+        $selected = ClientContact::factory()->create([
+            'user_id' => $this->user->id,
+            'client_id' => $this->client->id,
+            'company_id' => $this->company->id,
+            'first_name' => 'Selected',
+            'last_name' => 'Person',
+            'email' => 'selected@example.com',
+        ]);
+
+        $invitation = InvoiceInvitation::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+            'client_contact_id' => $selected->id,
+            'invoice_id' => $this->invoice->id,
+        ]);
+
+        $this->invoice->setRelation('invitations', collect([$invitation]));
+
+        $xpath = $this->xpath($this->buildBuyerContactXml('Primary', 'Contact'));
+
+        $this->assertSame('Selected Person', $this->singleValue($xpath, '//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:PersonName'));
+        $this->assertSame('selected@example.com', $this->singleValue($xpath, '//ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID'));
+    }
+
     public static function missingBuyerContactNameProvider(): iterable
     {
         yield 'empty first name' => [''];
@@ -174,6 +231,21 @@ class ZugferdBuyerContactTest extends TestCase
         $this->invoice->tax_name3 = '';
         $this->invoice = $this->invoice->calc()->getInvoice();
         $this->invoice->setRelation('client', $this->client);
+        $this->invoice->setRelation('company', $this->company);
+    }
+
+    private function setCompanyEmailSettings(string $email, ?string $seller_email): void
+    {
+        $settings = $this->company->settings;
+        $settings->email = $email;
+
+        if ($seller_email) {
+            $settings->e_invoice_seller_email = $seller_email;
+        }
+
+        $this->company->settings = $settings;
+        $this->company->save();
+
         $this->invoice->setRelation('company', $this->company);
     }
 

@@ -28,9 +28,12 @@ use App\Helpers\Invoice\InvoiceSumInclusive;
 use horstoeko\zugferd\ZugferdDocumentBuilder;
 use horstoeko\zugferd\codelists\ZugferdDocumentType;
 use horstoeko\zugferd\codelists\ZugferdDutyTaxFeeCategories;
+use App\Services\EDocument\Standards\Traits\EDocumentContacts;
 
 class ZugferdEDocument extends AbstractService
 {
+    use EDocumentContacts;
+
     public ZugferdDocumentBuilder $xdocument;
 
     private Company $company;
@@ -611,17 +614,22 @@ class ZugferdEDocument extends AbstractService
 
         $company_tax_registration = $this->setCompanyTaxRegistration();
 
+        $seller_email = $this->sellerEmail($this->document, $this->client);
+
+        $buyer_name = $this->selectedContact($this->document) ? $this->selectedContactName($this->document) : $this->client->present()->primary_contact_name_or_null();
+        $buyer_email = $this->selectedContactEmail($this->document) ?? $this->client->present()->email();
+
         $this->xdocument
             ->setDocumentSupplyChainEvent($this->getDocumentDate())
             ->setDocumentSeller($this->company->getSetting('name'))
             ->setDocumentSellerAddress($this->company->getSetting("address1"), $this->company->getSetting("address2"), "", $this->company->getSetting("postal_code"), $this->company->getSetting("city"), $this->company->country()->iso_3166_2, $this->company->getSetting("state"))
-            ->setDocumentSellerContact($this->document->user->present()->getFullName(), "", $user_or_company_phone, "", $this->document->user->email)
-            ->setDocumentSellerCommunication("EM", $this->document->user->email)
+            ->setDocumentSellerContact($this->document->user->present()->getFullName(), "", $user_or_company_phone, "", $seller_email)
+            ->setDocumentSellerCommunication("EM", $seller_email)
             ->addDocumentSellerTaxRegistration($company_tax_registration[0], $company_tax_registration[1])
             ->setDocumentBuyer($this->client->present()->name(), $this->client->number)
             ->setDocumentBuyerAddress($this->client->address1, "", "", $this->client->postal_code, $this->client->city, $this->client->country->iso_3166_2, $this->client->state)
-            ->setDocumentBuyerContact($this->client->present()->primary_contact_name_or_null(), "", $this->client->present()->phone(), "", $this->client->present()->email())
-            ->setDocumentBuyerCommunication("EM", $this->client->present()->email());
+            ->setDocumentBuyerContact($buyer_name, "", $this->client->present()->phone(), "", $buyer_email)
+            ->setDocumentBuyerCommunication("EM", $buyer_email);
 
         if (!empty($this->document->public_notes)) {
             $this->xdocument->addDocumentNote($this->document->public_notes);

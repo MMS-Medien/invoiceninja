@@ -23,9 +23,12 @@ use horstoeko\orderx\codelists\OrderDocumentTypes;
 use horstoeko\orderx\codelists\OrderDutyTaxFeeCategories;
 use horstoeko\orderx\OrderDocumentBuilder;
 use horstoeko\orderx\OrderProfiles;
+use App\Services\EDocument\Standards\Traits\EDocumentContacts;
 
 class OrderXDocument extends AbstractService
 {
+    use EDocumentContacts;
+
     public OrderDocumentBuilder $orderxdocument;
 
     /**
@@ -54,13 +57,16 @@ class OrderXDocument extends AbstractService
 
         $this->orderxdocument = OrderDocumentBuilder::CreateNew($profile);
 
+        $buyer_name = $this->selectedContact($this->document) ? $this->selectedContactName($this->document) : $settings_entity->present()->primary_contact_name();
+        $buyer_email = $this->selectedContactEmail($this->document) ?? $settings_entity->present()->email();
+
         $this->orderxdocument
             ->setDocumentSeller($company->getSetting('name'))
             ->setDocumentSellerAddress($company->getSetting("address1"), $company->getSetting("address2"), "", $company->getSetting("postal_code"), $company->getSetting("city"), $company->country()->iso_3166_2, $company->getSetting("state"))
-            ->setDocumentSellerContact($this->document->user->present()->getFullName(), "", $this->document->user->present()->phone(), "", $this->document->user->email)
+            ->setDocumentSellerContact($this->document->user->present()->getFullName(), "", $this->document->user->present()->phone(), "", $this->sellerEmail($this->document, $settings_entity))
             ->setDocumentBuyer($settings_entity->present()->name(), $settings_entity->number)
             ->setDocumentBuyerAddress($settings_entity->address1, "", "", $settings_entity->postal_code, $settings_entity->city, $settings_entity->country->iso_3166_2 ?? $company->country()->iso_3166_2, $settings_entity->state)
-            ->setDocumentBuyerContact($settings_entity->present()->primary_contact_name(), "", $settings_entity->present()->phone(), "", $settings_entity->present()->email())
+            ->setDocumentBuyerContact($buyer_name, "", $settings_entity->present()->phone(), "", $buyer_email)
             ->addDocumentPaymentTerm(ctrans("texts.xinvoice_payable", ['payeddue' => date_create($this->document->date ?? now()->format('Y-m-d'))->diff(date_create($this->document->due_date ?? now()->format('Y-m-d')))->format("%d"), 'paydate' => $this->document->due_date]));
 
         if (!empty($this->document->public_notes)) {

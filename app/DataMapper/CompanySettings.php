@@ -483,6 +483,8 @@ class CompanySettings extends BaseSettings
 
     public $e_quote_type = 'OrderX_Comfort';
 
+    public $e_invoice_seller_email = 'user'; //user, company
+
     public $default_expense_payment_type_id = '0';
 
     public $enable_e_invoice = false;
@@ -575,6 +577,7 @@ class CompanySettings extends BaseSettings
         'task_round_up'                      => 'bool',
         'task_round_to_nearest'              => 'int',
         'e_quote_type'                       => 'string',
+        'e_invoice_seller_email'             => 'string',
         'enable_rappen_rounding'             => 'bool',
         'use_unapplied_payment'              => 'string',
         'show_pdfhtml_on_mobile'             => 'bool',
