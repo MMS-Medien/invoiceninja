@@ -49,15 +49,15 @@ _ide_helper.php
 .phpunit.cache
 
 # AI tool files
-CLAUDE.md
-boost.json
-AGENTS.md
-junie/
-.agents/
-.claude/
-.codex/
-.cursor/
-.mcp.json
+# CLAUDE.md
+# boost.json
+# AGENTS.md
+# junie/
+# .agents/
+# .claude/
+# .codex/
+# .cursor/
+# .mcp.json
 
 # Playwright
 node_modules/
