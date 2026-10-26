@@ -31,6 +31,7 @@ use App\Models\Presenters\CreditPresenter;
 use App\Helpers\Invoice\InvoiceSumInclusive;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\HasTags;
+use App\Models\Traits\VisibleToContact;
 use App\Models\Traits\IndexableItems;
 /**
  * App\Models\Credit
@@ -155,6 +156,7 @@ class Credit extends BaseModel
     use MakesReminders;
     use Searchable;
     use HasTags;
+    use VisibleToContact;
     Use IndexableItems;
     /**
      * Get the index name for the model.

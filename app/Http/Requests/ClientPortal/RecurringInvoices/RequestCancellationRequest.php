@@ -20,7 +20,8 @@ class RequestCancellationRequest extends FormRequest
 
         auth()->guard('contact')->user()->loadMissing(['company']);
 
-        return (bool) (auth()->guard('contact')->user()->client_id == $this->recurring_invoice->client_id) && (auth()->guard('contact')->user()->company->enabled_modules & PortalComposer::MODULE_RECURRING_INVOICES);
+        return (bool) (auth()->guard('contact')->user()->client_id == $this->recurring_invoice->client_id) && (auth()->guard('contact')->user()->company->enabled_modules & PortalComposer::MODULE_RECURRING_INVOICES)
+            && auth()->guard('contact')->user()->canViewInPortal($this->recurring_invoice);
     }
 
     public function rules()

@@ -45,6 +45,7 @@ class PaymentsTable extends Component
             ->with('type', 'client', 'invoices')
             ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->where('is_deleted', false)
             ->whereIn('status_id', [Payment::STATUS_FAILED, Payment::STATUS_COMPLETED, Payment::STATUS_PENDING, Payment::STATUS_REFUNDED, Payment::STATUS_PARTIALLY_REFUNDED])
             // ->orderBy($this->sort_field, $this->sort_asc ? 'desc' : 'asc')

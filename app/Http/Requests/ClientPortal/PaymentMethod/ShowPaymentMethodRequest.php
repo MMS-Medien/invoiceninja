@@ -23,7 +23,8 @@ class ShowPaymentMethodRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return (int) auth()->guard('contact')->user()->client_id === (int) $this->payment_method->client_id;
+        return (int) auth()->guard('contact')->user()->client_id === (int) $this->payment_method->client_id
+            && auth()->guard('contact')->user()->canViewInPortal($this->payment_method);
     }
 
     /**

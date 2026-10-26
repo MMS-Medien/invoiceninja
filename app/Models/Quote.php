@@ -30,6 +30,7 @@ use App\Helpers\Invoice\InvoiceSumInclusive;
 use App\Events\Quote\QuoteReminderWasEmailed;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\HasTags;
+use App\Models\Traits\VisibleToContact;
 use App\Models\Traits\IndexableItems;
 /**
  * App\Models\Quote
@@ -139,6 +140,7 @@ class Quote extends BaseModel
     use MakesInvoiceValues;
     use Searchable;
     use HasTags;
+    use VisibleToContact;
     Use IndexableItems;
 
     protected $presenter = QuotePresenter::class;

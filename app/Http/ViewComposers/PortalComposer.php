@@ -128,10 +128,16 @@ class PortalComposer
             $data[] = ['title' => ctrans('texts.credits'), 'url' => 'client.credits.index', 'icon' => 'credit-card', 'id' => 'credits'];
         }
 
-        $data[] = ['title' => ctrans('texts.payment_methods'), 'url' => 'client.payment_methods.index', 'icon' => 'shield', 'id' => 'payment_methods'];
+        // Saved payment methods, tasks and projects belong to the whole client, not to a single contact.
+        $restricted = auth()->guard('contact')->user()->portalRestricted();
+
+        if (! $restricted) {
+            $data[] = ['title' => ctrans('texts.payment_methods'), 'url' => 'client.payment_methods.index', 'icon' => 'shield', 'id' => 'payment_methods'];
+        }
+
         $data[] = ['title' => ctrans('texts.documents'), 'url' => 'client.documents.index', 'icon' => 'download', 'id' => 'documents'];
 
-        if (auth()->guard('contact')->user()->client->getSetting('enable_client_portal_tasks')) {
+        if (! $restricted && auth()->guard('contact')->user()->client->getSetting('enable_client_portal_tasks')) {
             $data[] = ['title' => ctrans('texts.tasks'), 'url' => 'client.tasks.index', 'icon' => 'clock', 'id' => 'tasks'];
             $data[] = ['title' => ctrans('texts.projects'), 'url' => 'client.projects.index', 'icon' => 'briefcase', 'id' => 'projects'];
         }

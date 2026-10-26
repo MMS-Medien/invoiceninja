@@ -38,6 +38,7 @@ class MapSettings extends AbstractService
         "client_portal_terms" => "terms_of_service",
         "client_portal_privacy_policy" => "privacy_policy",
         "client_portal_enable_uploads" => "client_document_upload",
+        "client_portal_restrict_to_contact" => "client_portal_restrict_to_contact",
         "client_portal_allow_under_payment" => "allow_under_payment",
         "client_portal_under_payment_minimum" => "minimum_payment",
         "client_portal_allow_over_payment" => "allow_over_payment",

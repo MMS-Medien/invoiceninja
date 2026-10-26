@@ -25,6 +25,7 @@ use App\Utils\Traits\Recurring\HasRecurrence;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Presenters\RecurringInvoicePresenter;
 use App\Models\Traits\HasTags;
+use App\Models\Traits\VisibleToContact;
 use App\Models\Traits\IndexableItems;
 /**
  * Class for Recurring Invoices.
@@ -143,6 +144,7 @@ class RecurringInvoice extends BaseModel
     use PresentableTrait;
     use Searchable;
     use HasTags;
+    use VisibleToContact;
     use IndexableItems;
 
     protected $presenter = RecurringInvoicePresenter::class;

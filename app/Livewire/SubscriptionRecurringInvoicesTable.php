@@ -39,6 +39,7 @@ class SubscriptionRecurringInvoicesTable extends Component
         $query = RecurringInvoice::query()
             ->where('client_id', auth()->guard('contact')->user()->client->id)
             ->where('company_id', $this->company_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->whereNotNull('subscription_id')
             ->where('is_deleted', false)
             ->where('status_id', RecurringInvoice::STATUS_ACTIVE)

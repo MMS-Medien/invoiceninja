@@ -135,6 +135,7 @@ class InvoiceController extends Controller
             ->whereHas('contact', function ($query) use ($contact) {
                 $query->where('client_id', $contact->client_id);
             })
+            ->when($contact->portalRestricted(), fn ($q) => $q->where('client_contact_id', $contact->id))
             ->first();
 
         if (! $invitation) {
@@ -179,6 +180,7 @@ class InvoiceController extends Controller
         $data['invoices'] = Invoice::query()
                             ->whereIn('id', $ids)
                             ->whereClientId(auth()->guard('contact')->user()->client_id)
+                            ->visibleToContact(auth()->guard('contact')->user())
                             ->withTrashed()
                             ->get();
 
@@ -205,6 +207,7 @@ class InvoiceController extends Controller
         $invoices = Invoice::query()
                             ->whereIn('id', $ids)
                             ->whereClientId(auth()->guard('contact')->user()->client_id)
+                            ->visibleToContact(auth()->guard('contact')->user())
                             ->withTrashed()
                             ->get();
 
@@ -310,6 +313,7 @@ class InvoiceController extends Controller
                             ->whereIn('id', $ids)
                             ->withTrashed()
                             ->whereClientId(auth()->guard('contact')->user()->client_id)
+                            ->visibleToContact(auth()->guard('contact')->user())
                             ->get();
 
         //generate pdf's of invoices locally

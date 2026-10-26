@@ -15,6 +15,7 @@ namespace App\Livewire;
 use App\Models\Task;
 use App\Models\Quote;
 use App\Models\Client;
+use App\Models\ClientContact;
 use App\Models\Credit;
 use App\Models\Company;
 use App\Models\Expense;
@@ -119,9 +120,22 @@ class DocumentsTable extends Component
         }
     }
 
+    protected function contact(): ?ClientContact
+    {
+        return auth()->guard('contact')->user();
+    }
+
     protected function documents()
     {
         $client = $this->client();
+
+        // Restricted contacts only see company wide documents, not the ones attached to the client.
+        if ($this->contact()?->portalRestricted()) {
+            return Document::query()
+                ->where('is_public', true)
+                ->where('documentable_type', Company::class)
+                ->where('documentable_id', $client->company_id);
+        }
 
         return $client->documents()
             ->where('is_public', true)
@@ -139,7 +153,8 @@ class DocumentsTable extends Component
         return Document::query()
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Credit::class], function ($query) {
-                $query->where('client_id', $this->client()->id);
+                $query->where('client_id', $this->client()->id)
+                    ->visibleToContact($this->contact());
             });
     }
 
@@ -149,7 +164,8 @@ class DocumentsTable extends Component
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Expense::class], function ($query) {
                 $query->where('client_id', $this->client()->id);
-            });
+            })
+            ->when($this->contact()?->portalRestricted(), fn ($q) => $q->whereRaw('1 = 0'));
     }
 
     protected function invoices()
@@ -157,7 +173,8 @@ class DocumentsTable extends Component
         return Document::query()
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Invoice::class], function ($query) {
-                $query->where('client_id', $this->client()->id);
+                $query->where('client_id', $this->client()->id)
+                    ->visibleToContact($this->contact());
             });
     }
 
@@ -166,7 +183,8 @@ class DocumentsTable extends Component
         return Document::query()
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Payment::class], function ($query) {
-                $query->where('client_id', $this->client()->id);
+                $query->where('client_id', $this->client()->id)
+                    ->visibleToContact($this->contact());
             });
     }
 
@@ -176,7 +194,8 @@ class DocumentsTable extends Component
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Project::class], function ($query) {
                 $query->where('client_id', $this->client()->id);
-            });
+            })
+            ->when($this->contact()?->portalRestricted(), fn ($q) => $q->whereRaw('1 = 0'));
     }
 
     protected function quotes()
@@ -184,7 +203,8 @@ class DocumentsTable extends Component
         return Document::query()
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Quote::class], function ($query) {
-                $query->where('client_id', $this->client()->id);
+                $query->where('client_id', $this->client()->id)
+                    ->visibleToContact($this->contact());
             });
     }
 
@@ -193,7 +213,8 @@ class DocumentsTable extends Component
         return Document::query()
             ->where('is_public', true)
             ->whereHasMorph('documentable', [RecurringInvoice::class], function ($query) {
-                $query->where('client_id', $this->client()->id);
+                $query->where('client_id', $this->client()->id)
+                    ->visibleToContact($this->contact());
             });
     }
 
@@ -203,6 +224,7 @@ class DocumentsTable extends Component
             ->where('is_public', true)
             ->whereHasMorph('documentable', [Task::class], function ($query) {
                 $query->where('client_id', $this->client()->id);
-            });
+            })
+            ->when($this->contact()?->portalRestricted(), fn ($q) => $q->whereRaw('1 = 0'));
     }
 }

@@ -168,6 +168,7 @@
  *       @OA\Property(property="client_portal_allow_over_payment", type="boolean", example=false, description="Company setting `client_portal_allow_over_payment`."),
  *       @OA\Property(property="client_portal_allow_under_payment", type="boolean", example=false, description="Company setting `client_portal_allow_under_payment`."),
  *       @OA\Property(property="client_portal_enable_uploads", type="boolean", example=false, description="Company setting `client_portal_enable_uploads`."),
+ *       @OA\Property(property="client_portal_restrict_to_contact", type="boolean", example=false, description="Company setting `client_portal_restrict_to_contact`. When enabled, client contacts only see entities in the client portal on which they are an invitee."),
  *       @OA\Property(property="client_portal_privacy_policy", type="string", example="", description="Company setting `client_portal_privacy_policy`."),
  *       @OA\Property(property="client_portal_terms", type="string", example="", description="Company setting `client_portal_terms`."),
  *       @OA\Property(property="client_portal_under_payment_minimum", type="number", format="float", example=0, description="Company setting `client_portal_under_payment_minimum`."),

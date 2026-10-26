@@ -234,10 +234,11 @@ class ClientService
      *
      * @param array $options
      * @param bool $send_email determines if we should send this statement direct to the client
+     * @param \App\Models\ClientContact|null $contact the client portal contact, limits the statement to its entities when restricted
      */
-    public function statement(array $options = [], bool $send_email = false)
+    public function statement(array $options = [], bool $send_email = false, ?\App\Models\ClientContact $contact = null)
     {
-        $statement = (new Statement($this->client, $options));
+        $statement = (new Statement($this->client, $options))->setContact($contact);
 
         $pdf = $statement->run();
 
