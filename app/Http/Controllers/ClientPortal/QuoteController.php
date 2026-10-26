@@ -172,6 +172,7 @@ class QuoteController extends Controller
         $data['quotes'] = Quote::query()
                             ->whereIn('id', $ids)
                             ->where('client_id', $client_contact->client_id)
+                            ->visibleToContact($client_contact)
                             ->withTrashed()
                             ->get();
 
@@ -248,6 +249,7 @@ class QuoteController extends Controller
             ->whereIn('id', $ids)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
             ->where('company_id', auth()->guard('contact')->user()->company_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->where('status_id', Quote::STATUS_SENT)
             ->withTrashed()
             ->get();
@@ -286,6 +288,7 @@ class QuoteController extends Controller
             ->whereIn('id', $ids)
             ->where('client_id', auth()->guard('contact')->user()->client->id)
             ->where('company_id', auth()->guard('contact')->user()->client->company_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->whereIn('status_id', [Quote::STATUS_DRAFT, Quote::STATUS_SENT])
             ->whereNull('invoice_id')
             ->where(function ($q) {

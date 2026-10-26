@@ -83,6 +83,7 @@ class InstantPayment
                             ->whereIn('id', $this->transformKeys($payable_invoices->pluck('invoice_id')->toArray()))
                             ->where('is_deleted', 0)
                             ->where('client_id', $cc->client_id)
+                            ->visibleToContact($cc)
                             ->get()
                             ->map(function (Invoice $invoice): ?Invoice {
                                 $invoice = $invoice->service()

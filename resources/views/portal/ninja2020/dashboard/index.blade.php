@@ -47,7 +47,7 @@
             <div class="md:text-center">
                 <p class="text-light-grey-text mb-2 text-xs md:text-sm">{{ ctrans('texts.paid_to_date') }}</p>
                 <p class="text-2xl font-semibold text-[#212529] md:text-[32px]">
-                    {{ App\Utils\Number::formatMoney($client->paid_to_date, $client) }}
+                    {{ App\Utils\Number::formatMoney($paid_to_date, $client) }}
                 </p>
             </div>
         </div>
@@ -65,7 +65,7 @@
                     {{ ctrans('texts.open_balance') }}
                 </p>
                 <p class="text-2xl font-semibold text-[#212529] md:text-[32px]">
-                    {{ App\Utils\Number::formatMoney($client->balance, $client) }}
+                    {{ App\Utils\Number::formatMoney($balance, $client) }}
                 </p>
             </div>
         </div>

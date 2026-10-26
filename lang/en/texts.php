@@ -1121,6 +1121,8 @@ $lang = array(
     'enable_client_portal' => 'Client Portal',
     'enable_client_portal_help' => 'Show/hide the client portal.',
     'enable_client_portal_dashboard' => 'Dashboard',
+    'client_portal_restrict_to_contact' => 'Restrict to Contact',
+    'client_portal_restrict_to_contact_help' => 'Contacts only see invoices, quotes, credits and payments they are a recipient of',
     'enable_client_portal_dashboard_help' => 'Show/hide the dashboard page in the client portal.',
 
     // Plans

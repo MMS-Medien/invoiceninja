@@ -46,6 +46,7 @@ class RecurringInvoicesTable extends Component
             // ->with('client')
             ->where('client_id', auth()->guard('contact')->user()->client_id)
             ->where('company_id', auth()->guard('contact')->user()->company_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->whereIn('status_id', [RecurringInvoice::STATUS_ACTIVE])
             ->orderBy('status_id', 'asc')
             ->with('client')

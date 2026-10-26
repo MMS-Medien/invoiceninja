@@ -23,7 +23,8 @@ class ShowPaymentRequest extends Request
      */
     public function authorize(): bool
     {
-        return (int) auth()->guard('contact')->user()->client_id === (int) $this->payment->client_id;
+        return (int) auth()->guard('contact')->user()->client_id === (int) $this->payment->client_id
+            && auth()->guard('contact')->user()->canViewInPortal($this->payment);
     }
 
     /**

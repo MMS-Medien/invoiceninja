@@ -412,6 +412,8 @@ class SettingsData
 
     public bool $client_portal_enable_uploads = false; //@implemented
 
+    public bool $client_portal_restrict_to_contact = false; //@implemented
+
     public bool $client_portal_allow_under_payment = false; //@implemented
 
     public float $client_portal_under_payment_minimum = 0; //@implemented

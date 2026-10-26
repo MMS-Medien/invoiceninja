@@ -34,6 +34,7 @@ use App\DataMapper\InvoiceBackup;
 use App\Jobs\Ninja\TaskScheduler;
 use App\Utils\Number;
 use App\Models\Traits\HasTags;
+use App\Models\Traits\VisibleToContact;
 use App\Models\Traits\IndexableItems;
 
 /**
@@ -165,6 +166,7 @@ class Invoice extends BaseModel
     use ActionsInvoice;
     use Searchable;
     use HasTags;
+    use VisibleToContact;
     Use IndexableItems;
 
     protected $presenter = EntityPresenter::class;

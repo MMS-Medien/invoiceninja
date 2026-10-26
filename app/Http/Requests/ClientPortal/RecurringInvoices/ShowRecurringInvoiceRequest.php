@@ -22,7 +22,8 @@ class ShowRecurringInvoiceRequest extends Request
         auth()->guard('contact')->user()->loadMissing(['company']);
 
         return (int) auth()->guard('contact')->user()->client->id == $this->recurring_invoice->client_id
-           && (bool) (auth()->guard('contact')->user()->company->enabled_modules & PortalComposer::MODULE_RECURRING_INVOICES);
+           && (bool) (auth()->guard('contact')->user()->company->enabled_modules & PortalComposer::MODULE_RECURRING_INVOICES)
+           && auth()->guard('contact')->user()->canViewInPortal($this->recurring_invoice);
     }
 
     public function rules()

@@ -40,6 +40,7 @@ class PaymentMethodsTable extends Component
             ->with('gateway_type')
             ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
+            ->when(auth()->guard('contact')->user()->portalRestricted(), fn ($q) => $q->whereRaw('1 = 0'))
             ->whereHas('gateway', function ($query) {
                 $query->where('is_deleted', 0)
                        ->where('deleted_at', null);

@@ -67,6 +67,7 @@ class ProjectsTable extends Component
             ->where('company_id', $this->company_id)
             ->where('is_deleted', false)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
+            ->when(auth()->guard('contact')->user()->portalRestricted(), fn ($q) => $q->whereRaw('1 = 0'))
             ->withCount(['tasks' => function ($query) {
                 $query->where('is_deleted', false);
             }])

@@ -120,6 +120,7 @@ class InvoicesTable extends Component
 
         return $query
             ->where('client_id', auth()->guard('contact')->user()->client_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->where('status_id', '<>', Invoice::STATUS_DRAFT)
             ->where('status_id', '<>', Invoice::STATUS_CANCELLED)
             ->withTrashed();

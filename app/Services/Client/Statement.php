@@ -14,6 +14,7 @@ namespace App\Services\Client;
 
 use App\Factory\InvoiceItemFactory;
 use App\Models\Client;
+use App\Models\ClientContact;
 use App\Models\Credit;
 use App\Models\Design;
 use App\Models\Invoice;
@@ -41,7 +42,20 @@ class Statement
 
     private array $variables = [];
 
+    /**
+     * The client portal contact the statement is generated for. When the contact is
+     * restricted to its own entities, only those end up on the statement.
+     */
+    private ?ClientContact $contact = null;
+
     public function __construct(protected Client $client, public array $options) {}
+
+    public function setContact(?ClientContact $contact): self
+    {
+        $this->contact = $contact;
+
+        return $this;
+    }
 
     public function run(): ?string
     {
@@ -61,6 +75,10 @@ class Statement
 
             $variables = [];
             $variables = $html->generateLabelsAndValues();
+
+            if ($this->contact?->portalRestricted()) {
+                $variables = $this->restrictBalanceVariables($variables);
+            }
 
             $custom_statement_template = \App\Models\Design::where('id', $this->decodePrimaryKey($this->client->getSetting('statement_design_id')))->where('is_template', true)->first();
 
@@ -203,7 +221,7 @@ class Statement
         if ($this->getInvoices()->count() >= 1) {
             $this->entity = $this->getInvoices()->first(); //@phpstan-ignore-line
         } else {
-            $this->entity = $this->client->invoices()->whereHas('invitations')->first();
+            $this->entity = $this->client->invoices()->whereHas('invitations')->visibleToContact($this->contact)->first();
         }
 
         if (\is_null($this->entity)) {
@@ -220,7 +238,7 @@ class Statement
             $this->entity->client = $this->client;//@phpstan-ignore-line
             $ii = \App\Models\InvoiceInvitation::factory()->make(); //@phpstan-ignore-line
             $ii->setRelation('invoice', $this->entity); //@phpstan-ignore-line
-            $ii->setRelation('contact', $this->client->contacts->first()); //@phpstan-ignore-line
+            $ii->setRelation('contact', $this->contact ?? $this->client->contacts->first()); //@phpstan-ignore-line
             $ii->setRelation('company', $this->client->company);
             $ii->setRelation('user', $this->client->user);
             $this->entity->client->setRelation('company', $this->client->company);
@@ -321,6 +339,7 @@ class Statement
             ->where('is_deleted', false)
             ->where('company_id', $this->client->company_id)
             ->where('client_id', $this->client->id)
+            ->visibleToContact($this->contact)
             ->whereIn('status_id', $this->invoiceStatuses())
             ->whereBetween('date', [Carbon::parse($this->options['start_date']), Carbon::parse($this->options['end_date'])])
             ->orderBy('due_date', 'ASC')
@@ -362,6 +381,7 @@ class Statement
             ->with('client.country', 'invoices', 'tags')
             ->where('company_id', $this->client->company_id)
             ->where('client_id', $this->client->id)
+            ->visibleToContact($this->contact)
             ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PARTIALLY_REFUNDED, Payment::STATUS_REFUNDED])
             ->whereBetween('date', [Carbon::parse($this->options['start_date']), Carbon::parse($this->options['end_date'])])
             ->where('is_deleted', false)
@@ -375,6 +395,7 @@ class Statement
                         ->with('tags')
                         ->where('company_id', $this->client->company_id)
                         ->where('client_id', $this->client->id)
+                        ->visibleToContact($this->contact)
                         ->whereIn('status_id', [Payment::STATUS_COMPLETED, Payment::STATUS_PENDING, Payment::STATUS_PARTIALLY_REFUNDED, Payment::STATUS_REFUNDED])
                         ->where('is_deleted', 0)
                         ->whereRaw('payments.amount > payments.applied');
@@ -392,6 +413,7 @@ class Statement
             ->where('is_deleted', false)
             ->where('company_id', $this->client->company_id)
             ->where('client_id', $this->client->id)
+            ->visibleToContact($this->contact)
             ->whereIn('status_id', [Credit::STATUS_SENT, Credit::STATUS_PARTIAL, Credit::STATUS_APPLIED])
             ->whereBetween('date', [Carbon::parse($this->options['start_date']), Carbon::parse($this->options['end_date'])])
             ->where(function ($query) {
@@ -408,7 +430,8 @@ class Statement
     protected function getInvitation()
     {
         if ($this->entity instanceof Invoice) {
-            $invitation = $this->entity->invitations->first();
+            $invitation = ($this->contact ? $this->entity->invitations->firstWhere('client_contact_id', $this->contact->id) : null)
+                ?? $this->entity->invitations->first();
 
             if ($invitation) {
                 return $invitation;
@@ -423,6 +446,44 @@ class Statement
         }
 
         return false;
+    }
+
+    /**
+     * Replace the client wide balances with the totals of the entities
+     * the restricted contact can see.
+     */
+    private function restrictBalanceVariables(array $variables): array
+    {
+        $balance = Invoice::withTrashed()
+            ->where('company_id', $this->client->company_id)
+            ->where('client_id', $this->client->id)
+            ->visibleToContact($this->contact)
+            ->whereIn('status_id', [Invoice::STATUS_SENT, Invoice::STATUS_PARTIAL])
+            ->where('is_deleted', 0)
+            ->sum('balance');
+
+        $credit_balance = Credit::withTrashed()
+            ->where('company_id', $this->client->company_id)
+            ->where('client_id', $this->client->id)
+            ->visibleToContact($this->contact)
+            ->whereIn('status_id', [Credit::STATUS_SENT, Credit::STATUS_PARTIAL])
+            ->where('is_deleted', 0)
+            ->sum('balance');
+
+        $values = [
+            '$client.balance' => Number::formatMoney($balance, $this->client),
+            '$client_balance' => Number::formatMoney($balance, $this->client),
+            '$client.credit_balance' => Number::formatMoney($credit_balance, $this->client),
+            '$client.payment_balance' => ' ',
+        ];
+
+        foreach ($values as $key => $value) {
+            if (isset($variables['values'][$key])) {
+                $variables['values'][$key] = $value;
+            }
+        }
+
+        return $variables;
     }
 
     /**
@@ -458,6 +519,7 @@ class Statement
         $query = Invoice::withTrashed()
             ->where('client_id', $this->client->id)
             ->where('company_id', $this->client->company_id)
+            ->visibleToContact($this->contact)
             ->whereIn('status_id', [Invoice::STATUS_SENT, Invoice::STATUS_PARTIAL])
             ->where('balance', '>', 0)
             ->where('is_deleted', 0);

@@ -261,6 +261,29 @@ class ClientContact extends Authenticatable implements HasLocalePreference
         return $this->belongsTo(Client::class)->withTrashed();
     }
 
+    /**
+     * Whether this contact only sees the entities it is an invitee of
+     * in the client portal.
+     */
+    public function portalRestricted(): bool
+    {
+        return (bool) $this->client?->getSetting('client_portal_restrict_to_contact');
+    }
+
+    /**
+     * Whether an entity (or the entity a document is attached to) may be
+     * shown to this contact. Restricted contacts only see entities they are
+     * an invitee of, anything without invitations (client, project, task, ...) is hidden.
+     */
+    public function canViewInPortal(?object $entity): bool
+    {
+        if (! $this->portalRestricted()) {
+            return true;
+        }
+
+        return $entity && method_exists($entity, 'isVisibleToContact') && $entity->isVisibleToContact($this);
+    }
+
     public function primary_contact()
     {
         return $this->where('is_primary', true);

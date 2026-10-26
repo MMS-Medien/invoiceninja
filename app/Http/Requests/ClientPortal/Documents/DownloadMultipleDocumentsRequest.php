@@ -67,10 +67,11 @@ class DownloadMultipleDocumentsRequest extends FormRequest
 
         // Documents attached directly to a client
         if ($document->documentable_type == 'App\Models\Client') {
-            return ClientContact::where('client_id', $document->documentable_id)
+            return (bool) ClientContact::where('client_id', $document->documentable_id)
                                 ->where('email', $contact->email)
                                 ->where('company_id', $contact->company_id)
-                                ->exists();
+                                ->first()
+                                ?->canViewInPortal($document->documentable);
         }
 
         $entity = $document->documentable;
@@ -81,10 +82,11 @@ class DownloadMultipleDocumentsRequest extends FormRequest
 
         // Public documents on entities (Invoice, Quote, etc.) belonging to a client
         // this contact has access to
-        return ClientContact::where('client_id', $entity->client_id)
+        return (bool) ClientContact::where('client_id', $entity->client_id)
                             ->where('email', $contact->email)
                             ->where('company_id', $contact->company_id)
-                            ->exists();
+                            ->first()
+                            ?->canViewInPortal($entity);
     }
 
     /**

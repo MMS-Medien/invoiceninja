@@ -425,6 +425,8 @@ class CompanySettings extends BaseSettings
 
     public $client_portal_enable_uploads = false; //@implemented
 
+    public $client_portal_restrict_to_contact = false; //@implemented
+
     public $client_portal_allow_under_payment = false; //@implemented
 
     public $client_portal_under_payment_minimum = 0; //@implemented
@@ -815,6 +817,7 @@ class CompanySettings extends BaseSettings
         'portal_custom_footer' => 'string',
         'portal_custom_js' => 'string',
         'client_portal_enable_uploads' => 'bool',
+        'client_portal_restrict_to_contact' => 'bool',
         'purchase_order_number_counter' => 'integer',
         'email_template_payment_failed'      => 'string',
         'email_subject_payment_failed'       => 'string',

@@ -121,6 +121,7 @@ class QuotesTable extends Component
         return $query
             ->where('company_id', auth()->guard('contact')->user()->company_id)
             ->where('client_id', auth()->guard('contact')->user()->client_id)
+            ->visibleToContact(auth()->guard('contact')->user())
             ->where('is_deleted', 0)
             ->where('status_id', '<>', Quote::STATUS_DRAFT)
             ->withTrashed();

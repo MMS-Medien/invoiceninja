@@ -24,6 +24,7 @@ use App\Services\Payment\PaymentService;
 use App\Utils\Traits\Payment\Refundable;
 use App\Events\Payment\PaymentWasRefunded;
 use App\Models\Traits\HasTags;
+use App\Models\Traits\VisibleToContact;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -107,6 +108,7 @@ class Payment extends BaseModel
     use Refundable;
     use Inviteable;
     use HasTags;
+    use VisibleToContact;
 
     public const STATUS_PENDING = 1;
 
@@ -244,6 +246,23 @@ class Payment extends BaseModel
     public function credits(): \Illuminate\Database\Eloquent\Relations\MorphToMany
     {
         return $this->morphedByMany(Credit::class, 'paymentable')->withTrashed()->withPivot('amount', 'refunded', 'deleted_at')->withTimestamps();
+    }
+
+    /**
+     * A payment is visible to a restricted contact when the contact made it,
+     * or when it is applied to an invoice / credit the contact can see.
+     */
+    public function scopeVisibleToContact(\Illuminate\Database\Eloquent\Builder $query, ?ClientContact $contact): \Illuminate\Database\Eloquent\Builder
+    {
+        if (! $contact?->portalRestricted()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($contact) {
+            $q->where('payments.client_contact_id', $contact->id)
+                ->orWhereHas('invoices', fn ($i) => $i->visibleToContact($contact))
+                ->orWhereHas('credits', fn ($c) => $c->visibleToContact($contact));
+        });
     }
 
     /**

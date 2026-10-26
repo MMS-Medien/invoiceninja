@@ -42,7 +42,8 @@ class TasksTable extends Component
         $query = Task::query()
             ->where('company_id', $this->company_id)
             ->where('is_deleted', false)
-            ->where('client_id', auth()->guard('contact')->user()->client_id);
+            ->where('client_id', auth()->guard('contact')->user()->client_id)
+            ->when(auth()->guard('contact')->user()->portalRestricted(), fn ($q) => $q->whereRaw('1 = 0'));
 
         if (auth()->guard('contact')->user()->client->getSetting('show_all_tasks_client_portal') === 'invoiced') {
             $query = $query->whereNotNull('invoice_id');
